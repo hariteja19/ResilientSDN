@@ -1,0 +1,16 @@
+\begin{table}[t]\centering\scriptsize
+\caption{Paired comparison with ResilientSDN over all (topology, scenario) cells, seconds above $\theta$: number of cells in which the system is significantly lower / higher (Wilcoxon signed-rank on 30 seed-paired runs, Holm-corrected over all tests, $\alpha=0.05$) and median per-cell median difference.}\label{tab:paired_time}
+\begin{tabular}{lrrrrr}
+\toprule
+System vs RSDN & cells & lower & higher & n.s. & median $\Delta$\\
+\midrule
+Static & 48 & 0 & 33 & 15 & +48.0\\
+Static ECMP & 48 & 8 & 23 & 17 & +8.0\\
+k-path multipath & 48 & 20 & 3 & 25 & -6.0\\
+Simple reactive & 48 & 7 & 12 & 29 & +0.0\\
+TE-LP (min-max) & 48 & 28 & 0 & 20 & -4.0\\
+TE-LP (excess) & 48 & 35 & 0 & 13 & -4.0\\
+ResilientSDN-v2 & 48 & 7 & 0 & 41 & +0.0\\
+\bottomrule
+\end{tabular}
+\end{table}

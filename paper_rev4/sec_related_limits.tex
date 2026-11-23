@@ -1,0 +1,73 @@
+% Revision 4 -- additions to Related Work (Sec. II) and a replacement Limitations section.
+
+% ---- Related work: add after the existing SDN-defence paragraph --------------------------------
+\paragraph{Link-flooding attacks}
+Coremelt~\cite{studer2009coremelt} and Crossfire~\cite{kang2013crossfire} congest selected core
+links with low-rate, legitimate-looking flows, and Crossfire's \emph{rolling} variant moves the
+target as soon as routing reacts. CoDef~\cite{lee2013codef} reroutes and rate-controls with
+collaborating ASes; SPIFFY~\cite{kang2016spiffy} temporarily increases bandwidth to tell
+rate-adaptive (legitimate) from fixed-rate (bot) senders; Liaskos et al.~\cite{liaskos2016novel}
+reroute to make attack flows identifiable. ResilientSDN does not try to identify attack flows; it
+limits the damage they do within one domain, and our S14 scenario adopts the rolling attacker of
+Crossfire.
+
+\paragraph{Traffic engineering and multipath routing}
+Offline TE optimises link weights for the expected demand~\cite{fortz2000ospf}; online TE such as
+TeXCP~\cite{kandula2005texcp} balances load across pre-computed paths with stability guarantees, and
+SDN WANs (B4~\cite{jain2013b4}, SWAN~\cite{hong2013swan}) solve LPs over tunnels with
+congestion-free updates. Data-centre schemes spread load in the data plane: ECMP~\cite{rfc2992},
+MPTCP~\cite{raiciu2011mptcp}, CONGA~\cite{alizadeh2014conga}. These systems target utilisation
+under benign demand, split flows and assume demands are honest; ResilientSDN keeps flows
+unsplit, changes as few rules as possible and uses a trend detector and hysteresis so that an
+attacker cannot easily drive it into oscillation. Our TE-LP and $k$-MP baselines
+(Sec.~\ref{sec:baselines}) represent these two families.
+
+% ---- Limitations (replace the existing section) -------------------------------------------------
+\section{Limitations and Threats to Validity}\label{sec:limits}
+\begin{itemize}
+\item \textbf{Two evaluation methods.} The S12--S14 scenarios, the TCP experiments, the 30-seed
+  cells and the $k$-MP/TE-LP baselines come from the flow-level simulator, not from Mininet. The
+  simulator runs the same decision code and agrees with the emulation on ranking
+  (Sec.~\ref{sec:sim}), but it omits queueing, sub-second TCP dynamics and control-plane delay, so
+  its absolute times and losses are not emulation results.
+\item \textbf{TCP model.} TCP is a fluid max-min share with an assumed 5\,\% floor on saturated
+  links; real TCP under a UDP flood may fare worse (timeouts) or better. Varying the floor between 0
+  and 10\,\% changes the FCT of the rerouting systems by at most 6\,\% and does not reorder the two
+  groups of systems (Sec.~\ref{sec:results}), but it is no substitute for packet-level TCP. FCT
+  differences between systems are more reliable than FCT values.
+\item \textbf{The LP baselines are idealised.} TE-LP and TE-$\Phi$ split flows fractionally, solve to optimality every
+  interval and react on one poll; a deployable TE would round, rate-limit updates and pay
+  select-group rule costs. Its results bound what any path-based TE could achieve with the same
+  measurements; they are not a like-for-like comparison of deployability.
+\item \textbf{Myopic, greedy control.} Algorithm~\ref{alg:rsdn} solves neither the horizon problem
+  (\ref{eq:objective}) nor its single-interval version optimally; Proposition~\ref{prop:monotone}
+  only guarantees monotone improvement for measured rates. The sum-drift score holds flows on
+  congested links when only long detours exist (Internet2); ResilientSDN-v2 addresses this but has
+  been evaluated in simulation only.
+\item \textbf{Attacker model.} Attack targets are planned from static routes (S2--S13) or from the
+  victims' observed routes (S14). An attacker that knows the controller's parameters can still
+  evade the trend detector with pulses shorter than $N\tau$ (S7) and keep a link above $\theta$ up to
+  two thirds of the time (Proposition~\ref{prop:evasion}); randomising $N$ (S10) only partly removes
+  this. The duty-cycle trigger lowers the bound to one third but does not remove it, and it has been
+  evaluated in simulation only. Against the routing-aware rolling attacker, rerouting can be worse
+  than not reacting: in the sweep this happened in 31\,\% of the rolling instances for ResilientSDN
+  and 11\,\% for TE-$\Phi$ (Sec.~\ref{sec:sweep}). A defence would need to stop moving traffic once
+  the target follows it (e.g.\ by detecting re-targeting), which we have not implemented.
+\item \textbf{Coverage of the scenario space.} The randomised sweep samples the ranges of
+  Table~\ref{tab:scenario_space}, not every possible network or attacker: topologies up to 50
+  nodes, one host per switch, constant-rate gravity demands, at most three targets and one rolling
+  attacker, and a 60\,s attack. It runs in the simulator only, and its reference $\Phi^\star$ is a
+  fractional, per-interval relaxation, so it bounds what any controller could achieve rather than
+  what an unsplittable online controller can.
+\item \textbf{Validation data and host load.} The simulator was validated against the summary
+  table of a 1~October emulation campaign (54 points), not against the per-run data of the campaign
+  reported in Sec.~V. Emulation is sensitive to host load: a first attempt at the WAN extension ran
+  next to the simulation campaign and showed 5--10\,\% loss caused by CPU contention; those runs were
+  discarded and all reported emulation runs were made on an otherwise idle host.
+\item \textbf{Scale.} Emulated WANs have one host per PoP and capacities scaled to 100\,Mbps; five
+  emulation runs per cell give wide intervals. The WAN emulation of S6 (600\,s attacks) has the
+  number of completed runs given in Table~\ref{tab:wan_ext}.
+\item \textbf{No identification of attack flows.} ResilientSDN moves the largest flows first and
+  these are often attack flows; it limits congestion but does not stop the attack, and a
+  sufficiently large botnet saturates every cut.
+\end{itemize}

@@ -1,0 +1,72 @@
+% Revision 4 -- proposed abstract, contribution list and conclusion. Every number is from
+% paper_rev4/generated/ (simulation, 30 seeds) unless it says emulation.
+
+% ---- Abstract ----------------------------------------------------------------------------------
+\begin{abstract}
+Link-flooding attacks congest selected links with low-rate, legitimate-looking flows, so an SDN
+controller cannot simply filter them; it can only reroute. We formulate attack-aware rerouting as an
+online, unsplittable routing problem that minimises the total utilisation in excess of a threshold
+over any number of attackers, attacked links and traffic demands, and we derive ResilientSDN as a
+myopic drift-plus-penalty approximation of it: a trend detector, a capacity filter that provably
+creates no new congested link, a multi-objective path score and a hysteresis deadband. We evaluate it
+in Mininet on a fat-tree and three real backbones (NSFNET, Internet2, G\'EANT) and, with the same
+decision code, in a flow-level simulator over 30 seeds, eleven attack patterns plus multi-link and
+adaptive (rolling) attacks, UDP and TCP traffic, and baselines including ECMP, $k$-path multipath and
+two traffic-engineering LPs. ResilientSDN cut the time an attacked link spends above the threshold from
+121\,s to 35\,s per attack on average, with 2.3 flow moves per run against 388 for threshold-reactive
+rerouting, and kept victims' TCP flow-completion times within 2.0--3.3\,s (static routing:
+7.9--17\,s). An improved variant that scores paths by their bottleneck instead of summed utilisation
+reduced the time to 15\,s and removed a failure on sparse WANs. Fractional LP-based traffic
+engineering achieved less congestion (11--24\,s) at the price of splitting flows. To test whether
+these results generalise beyond hand-made scenarios, we also drew 1{,}945 random instances of the
+problem (real and random topologies, gravity-model demands, one to three attacked links, four attack
+behaviours) and compared every system with the instance optimum of a multicommodity LP. Over them,
+the variant with a duty-cycle trigger left a median of 40\,\% of the avoidable excess (ResilientSDN:
+70\,\%, the TE LP: 9\,\%) and closed most of the trend detector's pulse loophole; routing-aware rolling
+attackers remain the case in which rerouting can do worse than not reacting.
+\end{abstract}
+
+% ---- Contributions (introduction) -----------------------------------------------------------
+\begin{itemize}
+\item A formulation of attack-aware rerouting for multiple attackers, multiple and adaptive target
+  links, arbitrary demands and topologies (Sec.~\ref{sec:formulation}), its NP-hardness, two LP
+  relaxations, an exact per-instance optimum $\Phi^\star$ that every controller is measured against,
+  a cut condition that tells when no controller can win (Proposition~\ref{prop:cut}), and three
+  guarantees for ResilientSDN: its capacity-filtered greedy step never creates
+  secondary congestion (Proposition~\ref{prop:monotone}), its cooldown bounds every flow's moves
+  whatever the attacker does (Proposition~\ref{prop:churn}), and an attacker that stays undetected can
+  keep a link congested for at most a known fraction of the time (Proposition~\ref{prop:evasion}).
+\item A randomised evaluation over the scenario space (Sec.~\ref{sec:sweep}): 1{,}945 instances on
+  eight real and two families of random topologies with random demands, attack intensities, numbers
+  of targets and attack behaviours, which tests the conclusions of the hand-made scenarios and shows
+  where they do not hold.
+\item ResilientSDN, an online drift-plus-penalty approximation of that problem, whose decision logic
+  (Algorithm~\ref{alg:rsdn}) is a single module shared by the Ryu controller and the simulator.
+\item An evaluation in Mininet (four topologies, eleven attack patterns) and in a validated flow-level
+  simulator (29\,280 runs, 30 seeds, multi-link and adaptive attacks, TCP), with paired,
+  multiplicity-corrected statistics and multipath and LP traffic-engineering baselines.
+\item An honest account of where it fails --- pulse attacks, adaptive attackers, sum-drift holds on
+  sparse WANs --- and of which extension fixes what (ResilientSDN-v2/v3 ablation).
+\end{itemize}
+
+% ---- Conclusion --------------------------------------------------------------------------------
+\section{Conclusion}
+ResilientSDN reroutes around link-flooding attacks with few, verified moves: across four topologies
+and fourteen scenarios an attacked link stayed above the threshold for 35\,s per attack on average,
+against 121\,s with static routing and 56\,s with threshold-reactive rerouting, without the latter's
+oscillation, and it kept TCP victims' completion times close to ideal. The generalised formulation explains both its guarantees (no secondary congestion
+from filtered moves) and its failures (the sum-of-utilisation drift that holds flows on sparse WANs,
+fixed by bottleneck drift). Two results bound the claim: fractional traffic engineering with the same
+measurements does better, at the cost of splitting flows and more rule changes, and attackers that pulse
+or re-target adaptively still keep links congested for a large part of an attack. A randomised sweep
+over 1{,}945 instances of the general problem confirmed most of the ranking of the hand-made scenarios
+--- except that static $k$-path splitting comes out ahead of ResilientSDN in the median, while being
+worse than static routing in a third of the instances --- and the pulse loophole that
+Proposition~\ref{prop:evasion} predicts; it showed that a duty-cycle trigger closes
+most of it, and showed that against a routing-aware rolling attacker every reactive system,
+ResilientSDN included, is sometimes worse than not rerouting at all. In the scenario simulations the
+duty-cycle trigger cut the pulse attack S7 from 32 to 6\,s above the threshold without a single move
+in the absence of an attack, and brought the combined variant (v3) to 11.8\,s per attack. Future work
+is to evaluate the v2/v3 extensions in emulation, to detect re-targeting so that rerouting stops when
+the attack follows the victims, to add the multi-link, adaptive and TCP scenarios to the Mininet
+testbed, and to combine single-path rerouting with limited splitting where it pays off.

@@ -1,0 +1,28 @@
+% Revision 4 -- the hand-made scenarios as points of the scenario space (Sec. III-C), and the ranges the
+% randomised sweep samples (sim/generic.py). alpha = target's offered load / capacity during the attack
+% (legitimate 20 Mbps included), as in the measured-load checks of the emulation.
+\begin{table}[t]\centering\scriptsize
+\caption{Scenarios as points of the space $\omega=(G,c,\mathbf{r}^L,\mathcal{A},B_a,T_a,\pi_a)$ and the
+ranges sampled by the randomised sweep.}\label{tab:scenario_space}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lccccl@{}}
+\toprule
+ & topologies & $|T|$ & bots/target & $\alpha$ & behaviour $\pi_a$\\
+\midrule
+S1 & 4 & 0 & 0 & 0.2 & none\\
+S2--S5 & 4 & 1 & 1--5 & 0.5--0.95 & constant\\
+S6, S11 & 4 & 1 & 3 & 1.1 & constant, 600 / 120\,s\\
+S7 & 4 & 1 & 3 & 0.85 / 0.65 & pulse, $P=8$\,s, $\delta=\tfrac12$\\
+S8 & 4 & 1 & 3 & 0.9 & bursts of 8\,s every 31\,s\\
+S9 & 4 & 1 & 3 & 0.9 & constant, detours pre-loaded to 0.79\\
+S10 & 4 & 1 & 3 & as S7--S9 & S7--S9, randomised $N$, $T_c$\\
+S12, S13 & 4 & 2, 3 & 3 & 1.1 & constant\\
+S14 & 4 & 1 (moving) & 3 & 1.1 & rolling, $\Delta=10$\,s\\
+SB & 4 & 0 & 0 & 0.9 in bursts & legitimate bursts only\\
+\midrule
+Sweep & 8 real + Waxman, BA & 1--3 & 1--5 & U[0.9, 1.6] & constant, pulse ($P\in\{4,8\}$,\\
+ & (15--40 nodes) & & & & $\delta\in\{\tfrac13,\tfrac12,\tfrac23\}$), timed, rolling\\
+ & \multicolumn{5}{l}{legitimate demand: gravity model, 10--60 flows, base load U[0.2, 0.6]}\\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,41 @@
+\begin{table*}[t]\centering\scriptsize
+\caption{Simulation: flow moves per run (mean $\pm$ 95\% CI, 30 seeds). For TE-LP a move is any change of a flow's split by more than 1\%.}\label{tab:sim_reroutes}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Topology & Scen. & Static & ECMP & k-MP & Reactive & TE-LP & TE-$\Phi$ & RSDN & RSDN-v2\\
+\midrule
+Fat-tree & S3 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 99.7$\pm$5.6 & 1.0 & 1.0 & 1.0 & 1.0\\
+ & S6 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 1610.5$\pm$96.3 & 2.9$\pm$0.1 & 2.9$\pm$0.1 & 1.0 & 1.0$\pm$0.1\\
+ & S9 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 135.9$\pm$1.8 & 3.0 & 3.0 & 1.0 & 1.0\\
+ & S11 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 312.4$\pm$15.4 & 2.9$\pm$0.1 & 2.9$\pm$0.1 & 1.0 & 1.0$\pm$0.1\\
+ & S12 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 649.2$\pm$36.7 & 4.2$\pm$0.2 & 4.3$\pm$0.2 & 3.6$\pm$0.4 & 3.6$\pm$0.4\\
+ & S13 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 1131.1$\pm$53.0 & 6.6$\pm$0.4 & 7.1$\pm$0.5 & 6.2$\pm$0.4 & 6.1$\pm$0.3\\
+ & S14 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 373.8$\pm$25.1 & 19.6$\pm$4.9 & 21.3$\pm$4.3 & 12.3$\pm$0.3 & 12.1$\pm$0.1\\
+\midrule
+NSFNET & S3 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 60.5$\pm$20.5 & 1.1$\pm$0.1 & 1.0 & 1.0 & 1.0\\
+ & S6 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 802.7$\pm$308.0 & 2.6$\pm$0.3 & 2.5$\pm$0.2 & 1.1$\pm$0.1 & 1.0\\
+ & S9 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 356.4$\pm$23.3 & 6.6$\pm$1.5 & 8.6$\pm$1.3 & 1.6$\pm$0.4 & 3.6$\pm$0.6\\
+ & S11 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 156.6$\pm$60.6 & 2.8$\pm$0.2 & 2.7$\pm$0.2 & 1.1$\pm$0.1 & 1.1$\pm$0.1\\
+ & S12 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 386.6$\pm$77.9 & 5.5$\pm$0.4 & 4.9$\pm$0.3 & 2.1$\pm$0.1 & 2.0\\
+ & S13 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 924.2$\pm$51.8 & 5.1$\pm$0.4 & 4.2$\pm$0.6 & 2.9$\pm$0.3 & 3.7$\pm$0.4\\
+ & S14 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 244.2$\pm$35.1 & 19.6$\pm$4.6 & 25.4$\pm$3.3 & 11.7$\pm$1.1 & 11.9$\pm$0.3\\
+\midrule
+Internet2 & S3 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 117.2$\pm$14.8 & 1.6$\pm$0.3 & 1.0 & 0.9$\pm$0.1 & 1.1$\pm$0.1\\
+ & S6 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 1689.9$\pm$77.5 & 2.3$\pm$0.2 & 2.2$\pm$0.2 & 1.1$\pm$0.1 & 1.0\\
+ & S9 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 347.5$\pm$28.0 & 7.5$\pm$1.1 & 8.0$\pm$1.0 & 1.4$\pm$0.3 & 3.8$\pm$0.7\\
+ & S11 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 323.3$\pm$18.3 & 2.2$\pm$0.2 & 2.1$\pm$0.2 & 1.2$\pm$0.2 & 1.1$\pm$0.1\\
+ & S12 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 577.8$\pm$65.3 & 4.9$\pm$0.3 & 4.2$\pm$0.2 & 2.3$\pm$0.3 & 2.1$\pm$0.1\\
+ & S13 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 864.1$\pm$107.1 & 7.4$\pm$0.5 & 7.0$\pm$0.9 & 4.8$\pm$0.4 & 5.4$\pm$0.6\\
+ & S14 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 319.2$\pm$19.9 & 25.6$\pm$2.4 & 23.4$\pm$2.2 & 9.1$\pm$2.0 & 12.3$\pm$0.4\\
+\midrule
+G\'EANT & S3 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 98.2$\pm$17.2 & 0.7$\pm$0.4 & 1.2$\pm$0.2 & 1.0$\pm$0.2 & 1.0$\pm$0.1\\
+ & S6 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 1326.3$\pm$273.0 & 2.0$\pm$0.8 & 1.9$\pm$0.3 & 1.3$\pm$0.2 & 1.3$\pm$0.2\\
+ & S9 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 266.3$\pm$19.3 & 3.6$\pm$1.5 & 4.3$\pm$1.1 & 1.7$\pm$0.3 & 1.8$\pm$0.3\\
+ & S11 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 280.7$\pm$49.6 & 1.9$\pm$0.7 & 2.2$\pm$0.3 & 1.3$\pm$0.2 & 1.3$\pm$0.2\\
+ & S12 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 834.9$\pm$28.5 & 1.6$\pm$1.0 & 5.8$\pm$0.5 & 3.6$\pm$0.3 & 4.5$\pm$0.4\\
+ & S13 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 1055.6$\pm$80.2 & 3.1$\pm$1.6 & 8.1$\pm$0.9 & 4.9$\pm$0.5 & 6.2$\pm$0.5\\
+ & S14 & \textbf{0.0} & \textbf{0.0} & \textbf{0.0} & 354.2$\pm$27.3 & 1.9$\pm$1.0 & 15.2$\pm$3.1 & 8.0$\pm$1.5 & 10.5$\pm$1.7\\
+\bottomrule
+\end{tabular}
+\end{table*}

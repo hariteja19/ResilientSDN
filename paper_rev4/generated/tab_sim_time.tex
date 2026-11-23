@@ -1,0 +1,57 @@
+\begin{table*}[t]\centering\scriptsize
+\caption{Simulation, UDP legitimate traffic: seconds with a target link above $\theta=0.8$ (mean $\pm$ 95\% CI over 30 seeds; lowest in bold).}\label{tab:sim_time}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Topology & Scen. & Static & ECMP & k-MP & Reactive & TE-LP & TE-$\Phi$ & RSDN & RSDN-v2\\
+\midrule
+Fat-tree & S3 & 60 & \textbf{0} & \textbf{0} & 28$\pm$3 & 2 & 2 & 6 & 6\\
+ & S5 & 60 & \textbf{0} & \textbf{0} & 30 & 2 & 2 & 6 & 6\\
+ & S6 & 600 & \textbf{0} & \textbf{0} & 300 & 2 & 2 & 6 & 6\\
+ & S7 & 32 & \textbf{0} & \textbf{0} & 16 & 2 & 2 & 32 & 32\\
+ & S8 & 14 & \textbf{0} & \textbf{0} & 8 & 2 & 2 & 6 & 6\\
+ & S9 & 54 & \textbf{0} & \textbf{0} & 28 & 2 & 2 & 6 & 6\\
+ & S10 & 33$\pm$6 & \textbf{0} & \textbf{0} & 17$\pm$3 & 2 & 2 & 8$\pm$1 & 8$\pm$1\\
+ & S11 & 120 & \textbf{0} & \textbf{0} & 60 & 2 & 2 & 6 & 6\\
+ & S12 & 120 & 20$\pm$17 & 48$\pm$22 & 62$\pm$4 & \textbf{6$\pm$8} & \textbf{6$\pm$8} & 12$\pm$8 & 8$\pm$1\\
+ & S13 & 120 & 52$\pm$23 & 84$\pm$21 & 62$\pm$4 & \textbf{10$\pm$11} & 10$\pm$11 & 27$\pm$16 & 16$\pm$11\\
+ & S14 & 120 & 70$\pm$20 & \textbf{0} & 62 & 15$\pm$4 & 16$\pm$3 & 50$\pm$0 & 50$\pm$0\\
+\midrule
+NSFNET & S3 & 60 & 60 & \textbf{0} & 15$\pm$5 & 2 & 2 & 6 & 6\\
+ & S5 & 60 & 60 & \textbf{0} & 9$\pm$4 & 2 & 2 & 6 & 6\\
+ & S6 & 600 & 600 & \textbf{0} & 151$\pm$57 & 22$\pm$41 & 2 & 65$\pm$68 & 26$\pm$40\\
+ & S7 & 32 & 32 & \textbf{0} & 5$\pm$2 & 2 & 2 & 32 & 32\\
+ & S8 & 14 & 14 & \textbf{0} & 3$\pm$1 & 2 & 2 & 6 & 6\\
+ & S9 & 54 & 54 & 60$\pm$1 & 29$\pm$0 & 28$\pm$10 & 16$\pm$9 & 40$\pm$8 & \textbf{10$\pm$4}\\
+ & S10 & 30$\pm$7 & 30$\pm$7 & 18$\pm$10 & 11$\pm$5 & 11$\pm$7 & \textbf{9$\pm$7} & 20$\pm$8 & 9$\pm$3\\
+ & S11 & 120 & 120 & \textbf{0} & 31$\pm$11 & 2 & 2 & 17$\pm$13 & 6\\
+ & S12 & 120 & 120 & 28$\pm$19 & 75$\pm$16 & \textbf{2} & \textbf{2} & 25$\pm$16 & 6\\
+ & S13 & 120 & 120 & 120 & 115$\pm$6 & 92$\pm$19 & 85$\pm$20 & 109$\pm$13 & \textbf{51$\pm$21}\\
+ & S14 & 120 & 120 & \textbf{4$\pm$7} & 57$\pm$6 & 36$\pm$14 & 20$\pm$3 & 65$\pm$7 & 50$\pm$1\\
+\midrule
+Internet2 & S3 & 60 & 60 & 16$\pm$10 & 28$\pm$3 & \textbf{2} & \textbf{2} & 11$\pm$6 & 6\\
+ & S5 & 60 & 60 & \textbf{0} & 30 & 2 & 2 & 6 & 6\\
+ & S6 & 600 & 600 & 320$\pm$114 & 300 & \textbf{2} & \textbf{2} & 204$\pm$106 & 6\\
+ & S7 & 32 & 32 & \textbf{1$\pm$2} & 16 & 2 & 2 & 32 & 32\\
+ & S8 & 14 & 14 & \textbf{1$\pm$1} & 8$\pm$0 & 2 & 2 & 6$\pm$1 & 6\\
+ & S9 & 54 & 54 & 57$\pm$1 & 29$\pm$3 & 52$\pm$4 & 52$\pm$4 & 52$\pm$3 & \textbf{27$\pm$8}\\
+ & S10 & 32$\pm$7 & 32$\pm$7 & 22$\pm$11 & 17$\pm$4 & 21$\pm$10 & 21$\pm$10 & 25$\pm$8 & \textbf{15$\pm$6}\\
+ & S11 & 120 & 120 & 56$\pm$23 & 60 & \textbf{2} & \textbf{2} & 40$\pm$20 & 6\\
+ & S12 & 120 & 120 & 72$\pm$22 & 62$\pm$4 & \textbf{2} & \textbf{2} & 40$\pm$20 & 6\\
+ & S13 & 120 & 120 & 116$\pm$8 & 91$\pm$12 & 10$\pm$11 & 14$\pm$13 & 83$\pm$20 & \textbf{9$\pm$1}\\
+ & S14 & 120 & 120 & 56$\pm$23 & 70$\pm$1 & \textbf{22$\pm$2} & 23$\pm$2 & 86$\pm$9 & 50$\pm$0\\
+\midrule
+G\'EANT & S3 & 60 & 60 & 34$\pm$11 & 26$\pm$4 & 33$\pm$11 & 25$\pm$11 & 15$\pm$8 & \textbf{6}\\
+ & S5 & 60 & 60 & 16$\pm$10 & 17$\pm$5 & 23$\pm$11 & \textbf{2} & 6 & 6\\
+ & S6 & 600 & 600 & 380$\pm$110 & 240$\pm$45 & 261$\pm$113 & \textbf{2} & 46$\pm$56 & 7$\pm$0\\
+ & S7 & 32 & 32 & \textbf{2$\pm$3} & 6$\pm$2 & 17$\pm$6 & 13$\pm$5 & 32 & 32\\
+ & S8 & 14 & 14 & \textbf{1$\pm$2} & 4$\pm$1 & 8$\pm$2 & 3$\pm$1 & 6 & 6\\
+ & S9 & 54 & 54 & 59$\pm$1 & 28$\pm$2 & 25$\pm$10 & 14$\pm$8 & 11$\pm$5 & \textbf{7$\pm$2}\\
+ & S10 & 33$\pm$6 & 33$\pm$6 & 19$\pm$10 & 13$\pm$4 & 18$\pm$8 & 10$\pm$5 & 12$\pm$5 & \textbf{9$\pm$2}\\
+ & S11 & 120 & 120 & 68$\pm$23 & 50$\pm$8 & 49$\pm$22 & \textbf{2$\pm$0} & 7$\pm$0 & 7$\pm$0\\
+ & S12 & 120 & 120 & 120 & 68$\pm$8 & 92$\pm$19 & 18$\pm$15 & 98$\pm$17 & \textbf{10$\pm$1}\\
+ & S13 & 120 & 120 & 120 & 68$\pm$8 & 89$\pm$20 & 50$\pm$22 & 109$\pm$12 & \textbf{11$\pm$1}\\
+ & S14 & 120 & 120 & 84$\pm$19 & 71$\pm$1 & 93$\pm$17 & \textbf{33$\pm$10} & 48$\pm$10 & 47$\pm$8\\
+\bottomrule
+\end{tabular}
+\end{table*}

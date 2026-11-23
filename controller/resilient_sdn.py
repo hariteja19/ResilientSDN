@@ -7,119 +7,33 @@ Each polling interval, for every link the detector confirms as congested,
 flows on it are moved (largest first) until the link's projected load is back
 under the threshold. After each move the projected link loads are updated, so
 later decisions in the same round see where earlier flows went.
-Ablation switches (config `ablation:`) turn single mechanisms off.
+The decision logic (Algorithm 1) lives in controller/decision.py, shared with the
+flow-level simulator in sim/. Ablation switches (config `ablation:`) turn single
+mechanisms off.
 """
 
 import random
 
-from controller.detector import CongestionDetector
-from controller.hysteresis import HysteresisManager
-from controller.path_engine import PathEngine, path_links
-from controller.routing_base import RoutingBase, link_key
-from controller.scorer import PathScorer
-
-
-def move_load(stats, path, traffic):
-    """Add traffic (bytes/s, may be negative) to every link of a switch path."""
-    for link in path_links(path):
-        if link in stats:
-            s = stats[link]
-            s['bytes_per_sec'] = max(0.0, s['bytes_per_sec'] + traffic)
-            s['utilisation'] = s['bytes_per_sec'] / s['capacity']
+from controller.decision import Env, ResilientDecision, move_load  # noqa: F401 (move_load re-exported)
+from controller.routing_base import RoutingBase
 
 
 class ResilientSDN(RoutingBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         cfg = self.config
-        ablation = getattr(cfg, 'ablation', {}) or {}
-        self.use_capacity_filter = ablation.get('capacity_filter', True)
-        self.use_hysteresis = ablation.get('hysteresis', True)
-        self.use_scoring = ablation.get('scoring', 'multi_objective') == 'multi_objective'
-        self.relief_bypass = getattr(cfg, 'relief_bypass', False)   # ResilientSDN v2, see hysteresis.py
-        self.gate_all = getattr(cfg, 'dpp_gate_all_candidates', False)   # revision-2 variant
-        if not ablation.get('trend_trigger', True):
-            cfg.N_intervals = 1
         rng = random.Random(getattr(cfg, 'seed', None))  # seeded per run so S10 is reproducible
-        self.detector = CongestionDetector(cfg, rng=rng)
-        self.path_engine = PathEngine(self.graph, cfg)
-        self.scorer = PathScorer(cfg)
-        self.hysteresis = HysteresisManager(cfg, rng=rng)
-        self.log_event('config', ablation=ablation, N=cfg.N_intervals)
+        self.core = ResilientDecision(self.graph, cfg, rng=rng)
+        # kept as attributes for code and tools that read them from the app
+        self.detector, self.path_engine = self.core.detector, self.core.path_engine
+        self.scorer, self.hysteresis = self.core.scorer, self.core.hysteresis
+        self.env = Env(flows_on=self.flows_on, flow_rate=self.monitor.get_flow_rate,
+                       switch_path=self.switch_path, set_path=self.set_path,
+                       latency=self._latency, log=self.log_event)
+        self.log_event('config', ablation=self.core.ablation, N=cfg.N_intervals)
 
     def on_interval(self, link_stats):
-        congested = self.detector.update(link_stats)
-        if not congested:
-            return
-        self.log_event('congestion', links=[link_key(l) for l in congested],
-                       confidence={link_key(l): self.detector.get_attack_confidence(l)
-                                   for l in congested})
-        projected = {l: dict(s) for l, s in link_stats.items()}
-        for link in congested:
-            excess = (projected[link]['bytes_per_sec']
-                      - self.detector.threshold * projected[link]['capacity'])
-            for flow in self.flows_on(link):
-                if excess <= 0:
-                    break
-                traffic = self.monitor.get_flow_rate(flow.id)
-                if traffic > 0 and self._try_reroute(flow, link, traffic, projected):
-                    excess -= traffic
-            if excess > 0:
-                # ponytail: no multipath actuation; one src/dst flow cannot be
-                # split without select groups + per-packet hashing. Logged instead.
-                self.log_event('unresolved', link=link_key(link), excess=round(excess, 1))
-
-    def _try_reroute(self, flow, link, traffic, projected) -> bool:
-        current = self.switch_path(flow.id)
-        without = {l: dict(s) for l, s in projected.items()}
-        move_load(without, current, -traffic)   # the network if this flow left
-
-        if self.use_capacity_filter:
-            candidates = self.path_engine.find_candidates(
-                flow.src, flow.dst, link, traffic, without)
-        else:
-            candidates = [p for p in self.path_engine.all_paths(flow.src, flow.dst)
-                          if link not in path_links(p)]
-        candidates = [p for p in candidates if p != current]
-        if not candidates:
-            self.log_event('no_candidate', flow=flow.id, link=link_key(link))
-            return False
-
-        latency = self._latency()
-        if self.gate_all and self.use_hysteresis:
-            # revision-2 variant: the deadband (11) filters every candidate before the score (9)
-            self.scorer.update_stats(projected)
-            cur = self.scorer.dpp_score(current, 0, current)
-            self.scorer.update_stats(without)
-            dpp = {tuple(p): self.scorer.dpp_score(p, traffic, current) for p in candidates}
-            gated = [p for p in candidates if dpp[tuple(p)] - cur > self.hysteresis.epsilon]
-            if not gated:
-                self.log_event('held', flow=flow.id, new_dpp=round(max(dpp.values()), 4),
-                               current_dpp=round(cur, 4), gated=len(candidates))
-                return False
-            candidates = gated
-        self.scorer.update_stats(without)
-        if self.use_scoring:
-            best = self.scorer.rank_candidates(candidates, traffic, current, latency)[0][0]
-        else:
-            best = min(candidates, key=lambda p: self.scorer.path_latency(p, latency))
-        self._log_decision(flow, candidates, best, traffic, current, latency)
-
-        new_dpp = self.scorer.dpp_score(best, traffic, current)   # stats: without the flow
-        self.scorer.update_stats(projected)
-        current_dpp = self.scorer.dpp_score(current, 0, current)  # stats: with the flow
-        if self.use_hysteresis and not self.hysteresis.should_reroute(
-                flow.id, new_dpp, current_dpp, link, relief=self.relief_bypass):
-            self.log_event('held', flow=flow.id, new_dpp=round(new_dpp, 4),
-                           current_dpp=round(current_dpp, 4))
-            return False
-
-        if not self.set_path(flow, best, reason=f'congestion on {link_key(link)}'):
-            return False
-        self.hysteresis.record_reroute(flow.id, new_dpp, best, old_path=current)
-        move_load(projected, current, -traffic)
-        move_load(projected, best, traffic)
-        return True
+        self.core.on_interval(link_stats, self.env)
 
     def _latency(self):
         """Measured latency where available, configured latency otherwise."""
@@ -128,12 +42,3 @@ class ResilientSDN(RoutingBase):
             latency[(a, b)] = latency[(b, a)] = d['latency']
         latency.update(self.monitor.latency)
         return latency
-
-    def _log_decision(self, flow, candidates, best, traffic, current, latency):
-        """Objectives of every candidate, for the Pareto analysis."""
-        best_latency = self.scorer.best_latency(candidates, latency)
-        objectives = [[round(x, 4) for x in self.scorer.objectives(
-                          p, traffic, current, latency, best_latency)]
-                      for p in candidates]
-        self.log_event('decision', flow=flow.id, objectives=objectives,
-                       selected=candidates.index(best))

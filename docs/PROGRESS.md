@@ -4,9 +4,30 @@ Full plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
 
 **Status legend:** ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked
 
-**Last updated:** 2026-09-29 01:55
+**Last updated:** 2026-11-22 (revision 4)
 
 ---
+
+## Revision 4 (2026-11-22, professor feedback, one-day revision)
+
+| Item | Status |
+|------|--------|
+| Generalised formulation (multi-attacker, multi-link, demands, any topology), Prop. 1, complexity | ✅ `paper_rev4/sec_formulation.tex` |
+| Algorithm 1 aligned with code; decision logic moved to `controller/decision.py` (Ryu-free, shared with sim) | ✅ smoke-verified in Mininet (fat-tree S3: 8.1 s, 3 reroutes, as before) |
+| ResilientSDN-v2 options (severity order, least-loaded fallback; bottleneck drift existed) | ✅ off by default; evaluated in simulation only |
+| Flow-level simulator `sim/` (same decision code, same planner); S12/S13 multi-link, S14 adaptive rolling attacker; TCP goodput + FCT | ✅ 29,280 runs, 30 seeds, 0 failed |
+| Baselines: k-path multipath, TE-LP (min-max), TE-Phi (excess LP = relaxation of Eq. 3) | ✅ sim only |
+| Paired statistics (Wilcoxon, Holm, bootstrap CI, rank-biserial) `evaluation/paired_stats.py` | ✅ |
+| WAN emulation of S6, S7, S8, S10 (`run_wan_ext.sh`, results/wan_ext) | 🟨 running (~11 h); first attempt discarded, see below |
+| Paper material `paper_rev4/` (+ `make_assets.py`, `main_rev4.tex`) | ✅ builds; merge into the paper (source not on this machine) |
+
+**Incidents (all fixed):**
+- CPU contention: the first WAN-extension attempt ran next to the simulation campaign; legit loss rose to 5-10% and stats
+  polling was starved. 30 runs moved to `results/wan_ext_CONTENDED_do_not_use/`; re-run on an idle host.
+- TE-LP results depended on PYTHONHASHSEED (LP variable order from a set; HiGHS picks a different optimal vertex). Sorted;
+  all TE-LP rows recomputed; regression test `test_results_do_not_depend_on_the_hash_seed`.
+- A stopped campaign script kept spawning jobs (duplicate writers): duplicates were identical except TE-LP; CSVs deduplicated.
+- Min-max TE-LP degenerate on GEANT (a 1.55 Mbps link with a 5 Mbps flow pins U* = 3.23); added TE-Phi.
 
 ## Right Now (2026-10-01, evaluation finished; weak points investigated, not fixed)
 

@@ -235,3 +235,26 @@ Both use the same base controller (`controller/routing_base.py`) as ResilientSDN
 | `nothing listening on port 6653` | another controller is running: `sudo pkill -f ryu-manager; sudo mn -c` |
 | a run failed | see `results/<part>/runs/<run>/error.txt`; re-run the same command (only failed runs repeat) |
 | WSL stopped overnight | Windows went to sleep; set "sleep: never" while plugged in, then re-run `./run_full.sh` |
+
+
+---
+
+## Revision 4 (22 November 2026)
+
+**Emulation, WAN extension** (S6, S7, S8, S10 on NSFNET, Internet2, GEANT; 3 systems x 5 runs):
+```sh
+./run_wan_ext.sh            # in WSL; ~11 h; results/wan_ext/all_results.csv
+```
+Do not run CPU-heavy work on the host at normal priority meanwhile: CPU contention causes packet loss
+in Open vSwitch / iperf3 and contaminates the loss metric.
+
+**Simulation** (Windows venv, no Mininet; 30 seeds; UDP, TCP and ECMP-aware-attacker campaigns):
+```powershell
+powershell -ExecutionPolicy Bypass -File resultsun_sim_campaign.ps1     # Idle priority, resumable
+.venv\Scripts\python -m sim.run --out results/sim/fat_tree --topologies fat_tree --runs 30 --legit tcp   # one part
+```
+**Tables, figures, statistics, paper material:**
+```powershell
+.venv\Scripts\python paper_rev4\make_assets.py
+wsl -u root sh paper_rev4/build.sh          # builds paper_rev4/main_rev4.pdf
+```

@@ -1,0 +1,29 @@
+% Revision 4 -- notation for Sec. III-C. Replace the paper's notation table, or add the rows it lacks.
+\begin{table}[t]\centering\footnotesize
+\caption{Notation}\label{tab:notation}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$G=(V,E)$, $c_e$ & directed network, capacity of link $e$ (bytes/s) \\
+$t$, $\tau$ & polling interval index, its length (2\,s) \\
+$\mathcal{F}(t)=\mathcal{F}_L\cup\mathcal{F}_A$ & flows (legitimate $\cup$ attack; not distinguishable) \\
+$s_f,d_f,r_f(t)$ & ingress, egress switch and measured rate of flow $f$ \\
+$\mathcal{A}$, $B_a$, $\mathcal{F}_a$ & attackers, rate budget and flows of attacker $a$ \\
+$T_a(t)$, $T(t)$ & target links of attacker $a$; all targets \\
+$\pi_a$, $\Delta_a$ & attacker's re-targeting policy and observation delay \\
+$\mathcal{P}_f^H$ & simple paths of $f$ with at most $H$ hops \\
+$x_f^p(t)$ & 1 if $f$ uses path $p$ in interval $t$ \\
+$y_e$, $u_e$, $\hat u_e$ & load, utilisation, measured utilisation $\min\{1,u_e\}$ \\
+$\theta$ & congestion threshold (0.8) \\
+$\phi_e$, $\Phi$ & excess $[u_e-\theta]^+$ of a link; of the network \\
+$\ell_f$, $K_f$ & path latency; normalised reconfiguration cost \\
+$\beta,\gamma$ & weights of latency and reconfiguration in (\ref{eq:objective}) \\
+$T_c$, $t_f^{\mathrm{last}}$ & cooldown; interval of $f$'s last move \\
+$Q_e$, $V_0$, $\varepsilon$ & virtual queue, DPP penalty weight, deadband \\
+$N$, $W$ & polls above $\theta$ to trigger; repeat-attack window \\
+$w_1,w_2,w_3$ & score weights of $C$, $L$, $K$ (Eq.~\ref{eq:score}) \\
+$U$, $s_e$ & max.\ utilisation (TE-LP); excess slack (TE-$\Phi$) \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,236 @@
+% Revision 4 -- drop-in replacement for Section III-C (Problem Formulation) and Eq. (3).
+% Notation table entries referenced here: Table~\ref{tab:notation}.
+\subsection{Problem Formulation}\label{sec:formulation}
+
+\paragraph{Network and traffic}
+The data plane is a directed graph $G=(V,E)$; every full-duplex cable gives two directed links
+$e=(i,j)$ with capacity $c_e$ (bytes/s). Time is divided into polling intervals
+$t=1,2,\dots$ of length $\tau$ ($\tau=2$\,s). In interval $t$ the controller sees a set of flows
+$\mathcal{F}(t)$, one per source--destination address pair (the granularity of the installed
+OpenFlow rules). Flow $f$ enters at switch $s_f$, leaves at $d_f$ and offers rate $r_f(t)$,
+measured at its ingress switch; $\mathbf{r}(t)=(r_f(t))_f$ is the traffic demand of interval $t$.
+$\mathcal{F}(t)=\mathcal{F}_L(t)\cup\mathcal{F}_A(t)$ is the union of legitimate and attack
+flows, but the controller cannot tell them apart: attack flows of a link-flooding attack are
+individually low-rate and protocol-conformant~\cite{kang2013crossfire}, so the formulation never
+uses the partition.
+
+\paragraph{Attackers}
+A set $\mathcal{A}$ of attackers; attacker $a$ controls bots that open flows
+$\mathcal{F}_a(t)\subseteq\mathcal{F}_A(t)$ under a rate budget $\sum_{f\in\mathcal{F}_a(t)}
+r_f(t)\le B_a$. Attacker $a$ aims at a set of target links $T_a(t)\subseteq E$; the attacked
+set is $T(t)=\bigcup_a T_a(t)$, so $|T(t)|>1$ covers simultaneous multi-link attacks. An attacker
+is \emph{adaptive} if it re-chooses its targets from the routes it observes,
+$T_a(t)=\pi_a\big(\mathbf{x}(t-\Delta_a)\big)$, with an observation delay $\Delta_a$
+(e.g.\ traceroute, as in Crossfire's rolling attack~\cite{kang2013crossfire}). Scenarios
+S2--S11 are the case $|\mathcal{A}|=1$, $|T|=1$, $\pi_a$ constant; S12/S13 have $|T|=2,3$; S14
+is adaptive (Sec.~\ref{sec:scenarios}).
+
+\paragraph{Routing}
+$\mathcal{P}_f^H$ is the set of simple $s_f$--$d_f$ paths with at most $H$ hops. The routing
+decision is $x_f^p(t)\in\{0,1\}$ with $\sum_{p\in\mathcal{P}_f^H}x_f^p(t)=1$: every flow uses
+exactly one path, because a flow is one exact-match rule per switch (splitting one address pair
+needs select groups and per-packet hashing, which ResilientSDN does not use). The load and
+utilisation of link $e$ are
+\begin{equation}
+  y_e(t)=\sum_{f\in\mathcal{F}(t)}\sum_{p\ni e} r_f(t)\,x_f^p(t),\qquad
+  u_e(t)=\frac{y_e(t)}{c_e}.
+  \label{eq:load}
+\end{equation}
+OpenFlow port counters report carried, not offered, bytes, so the controller observes
+$\hat u_e(t)=\min\{1,u_e(t)\}$: an overloaded link reads as $100\,\%$ whatever its overload.
+
+\paragraph{Objective}
+With a congestion threshold $\theta\in(0,1)$ ($\theta=0.8$), the excess of link $e$ is
+$\phi_e(t)=[u_e(t)-\theta]^+$ and the excess of the network is
+$\Phi(\mathbf{x}(t))=\sum_{e\in E}\phi_e(t)$; $\Phi=0$ means that no link, attacked or not, is
+above the threshold. Moving flow $f$ from path $p$ to $q$ installs a rule on every switch of $q$
+that is not on $p$; the normalised reconfiguration cost is
+$K_f(\mathbf{x}(t),\mathbf{x}(t-1))=|q\setminus p|/|q|$ (0 if $f$ stays), and $\ell_f$ is the
+propagation latency of $f$'s path. The ideal controller solves, over a horizon of $\mathcal{T}$
+intervals,
+\begin{align}
+  \min_{\mathbf{x}(1),\dots,\mathbf{x}(\mathcal{T})}\;
+   & \frac{1}{\mathcal{T}}\sum_{t=1}^{\mathcal{T}}\Big[\Phi(\mathbf{x}(t))
+     + \beta\sum_{f}\ell_f(\mathbf{x}(t))
+     + \gamma\sum_{f}K_f(\mathbf{x}(t),\mathbf{x}(t-1))\Big]
+     \label{eq:objective}\\
+  \text{s.t.}\;
+   & \textstyle\sum_{p\in\mathcal{P}_f^H}x_f^p(t)=1,\quad x_f^p(t)\in\{0,1\}
+     && \forall f,t \label{eq:unsplit}\\
+   & x_f(t)\neq x_f(t-1)\;\Rightarrow\; t-t_f^{\mathrm{last}}\ge T_c/\tau
+     && \forall f,t \label{eq:cooldown}
+\end{align}
+where $t_f^{\mathrm{last}}$ is the interval of $f$'s previous move and $T_c$ the cooldown.
+Eq.~(\ref{eq:objective}) replaces the single-link objective of the earlier version (old Eq.~3):
+it covers any number of attackers and target links, any demand $\mathbf{r}(t)$ (attack flows
+included) and any topology through $G$, $c_e$ and $\mathcal{P}_f^H$; and it charges congestion
+created on \emph{non-attacked} links (secondary congestion) exactly as congestion on a target.
+
+\paragraph{Hardness and the relaxation used as a baseline}
+For a single interval with $\beta=\gamma=0$, deciding whether $\Phi=0$ is feasible is the
+decision version of unsplittable minimum-congestion routing, which is NP-hard already for a single
+source~\cite{kleinberg1996unsplittable}. Relaxing (\ref{eq:unsplit}) to $x_f^p\in[0,1]$ and
+minimising the maximum utilisation $U$ instead of $\Phi$ gives the path-flow linear program
+\begin{equation}
+  \min U\quad\text{s.t.}\quad
+  \sum_{f}\sum_{p\ni e} r_f\,x_f^p\le U c_e\;\forall e,\qquad
+  \sum_{p}x_f^p=1,\; x_f^p\ge 0\;\forall f,
+  \label{eq:lp}
+\end{equation}
+the classical min-max-utilisation TE problem; replacing $U$ by $\sum_e s_e$ with
+$s_e\ge u_e-\theta$ gives the LP relaxation of (\ref{eq:objective}) itself (TE-$\Phi$). Its optimum $U^\star$ is a lower bound on the
+maximum utilisation of every routing, split or not, over the same path sets and the same measured
+demand. We implement both as baselines (TE-LP and TE-$\Phi$, Sec.~\ref{sec:baselines}); the gap between
+ResilientSDN and them measures the cost of single-path, rule-economical operation. Min-max is
+degenerate when some link is overloaded whatever the routing, which the excess objective is not.
+
+\paragraph{Instance optimum and defendability}
+Path-based relaxations are lower bounds only for the path sets they use. To compare every system
+with the best \emph{any} controller could do on the same traffic, we solve the arc-based
+multicommodity relaxation of (\ref{eq:objective}) with $\beta=\gamma=0$ in each interval,
+\begin{equation}
+  \Phi^\star(t)=\min_{g\ge0,\,s\ge0}\;\sum_{e\in E}s_e\quad\text{s.t.}\quad
+  \frac{1}{c_e}\sum_{k}g_{k,e}-s_e\le\theta\;\;\forall e,\qquad
+  g_k\ \text{a flow of the demands of source }k,
+  \label{eq:phistar}
+\end{equation}
+with commodities aggregated by source node (exact here, since $\Phi$ depends only on the total load per
+link). Every routing of the same demand --- any paths, any hop count, split or not --- is feasible for
+(\ref{eq:phistar}), so $\Phi^\star(t)\le\Phi(\mathbf{x}(t))$ for every controller, and
+$\Phi^\star=\int\Phi^\star(t)\,dt$ bounds the excess any controller can achieve over an attack. We
+call an instance \emph{defendable} if $\Phi^\star=0$, and measure a system by its
+\emph{remaining excess} $(\Phi-\Phi^\star)/(\Phi_{\mathrm{static}}-\Phi^\star)$: 0 means optimal, 1
+means no better than not reacting at all. The ideal latency- and reconfiguration-free controller of
+(\ref{eq:objective}) is therefore not a hypothetical object: its value is computed for every evaluated
+instance (Sec.~\ref{sec:sweep}).
+
+\paragraph{When does the attacker win?}
+Defendability is a property of the instance, not of the controller, and it has a simple necessary
+condition. For a partition $(X,Y)$ of $V$, let $L(X,Y)$ be the links from $X$ to $Y$, $c(L)$ their
+capacity and $D_{XY}$ the total demand (legitimate and attack) from sources in $X$ to destinations in
+$Y$.
+\begin{proposition}[cut condition]\label{prop:cut}
+For every routing, split or not,
+$\displaystyle \Phi\;\ge\;\frac{D_{XY}-\theta\,c(L)}{\max_{e\in L}c_e}$.
+In particular no controller can keep every link at or below $\theta$ if some cut carries more than
+$\theta$ times its capacity, and an attacker that can place bots on the $X$ side of a cut separating
+them from destinations on the $Y$ side wins against every defence with a budget
+$B>\theta\,c(L)-D^{L}_{XY}$, where $D^{L}_{XY}$ is the legitimate demand across the cut.
+\end{proposition}
+\begin{proof}
+Every unit of demand from $X$ to $Y$ crosses $L(X,Y)$ at least once, so $\sum_{e\in L}y_e\ge D_{XY}$.
+Hence $\sum_{e\in L}(u_e-\theta)c_e\ge D_{XY}-\theta c(L)$, and the left side is at most
+$\max_{e\in L}c_e\sum_{e\in L}[u_e-\theta]^+\le\max_{e\in L}c_e\,\Phi$.
+\end{proof}
+This formalises the observation behind Crossfire~\cite{kang2013crossfire}: a link-flooding attacker
+needs to beat the \emph{cut}, not a link, and rerouting can only help while the cut has spare capacity.
+Proposition~\ref{prop:cut} is weaker than (\ref{eq:phistar}) (which takes every cut into account at
+once) but explains the trend the sweep shows: the share of defendable instances falls as the attack
+intensity and the number of attacked links grow.
+
+\paragraph{The scenario space}
+An evaluation instance is a point $\omega=(G,c,\mathbf{r}^L,\mathcal{A},\{B_a,T_a,\pi_a\})$ of the
+model above: a topology with capacities, a legitimate demand matrix, and per attacker a budget, a target
+set and a behaviour $\pi_a$ (constant, pulsing with period $P$ and duty $\delta$, timed bursts, or
+rolling re-targeting). The scenarios S1--S14 are fourteen hand-chosen points of this space
+(Table~\ref{tab:scenario_space}); the randomised sweep of Sec.~\ref{sec:sweep} samples it, so that the
+conclusions are tested over the space rather than at a few points.
+
+\paragraph{Online, myopic approximation}
+The controller knows neither future demand nor the attacker's policy $\pi_a$, so it cannot solve
+(\ref{eq:objective}) over the horizon. Following Lyapunov drift-plus-penalty
+control~\cite{neely2010stochastic}, define for every link a virtual queue
+$Q_e(t+1)=[Q_e(t)+y_e(t)-\theta c_e]^+$, which grows exactly while $e$ is above the threshold.
+Minimising, in each interval, a bound on the drift $\mathbb{E}[\Delta Q]$ plus $V$ times the
+penalty (reconfiguration) keeps the time-average excess bounded while trading it against rule
+changes. ResilientSDN uses this structure with two approximations that the evaluation tests
+explicitly: (i) the backlog weight of each link is replaced by its post-move utilisation, giving
+the per-flow score
+\begin{equation}
+  \mathrm{DPP}(p)=-\sum_{e\in p}u_e^{\mathrm{post}}-V_0\,K_f(p),
+  \label{eq:dpp}
+\end{equation}
+or, in the bottleneck variant, $-\max_{e\in p}u_e^{\mathrm{post}}-V_0K_f(p)$;
+and (ii) flows are decided one at a time, greedily, with the loads updated after every move
+(Algorithm~\ref{alg:rsdn}). A move is made only if it improves (\ref{eq:dpp}) by more than a
+deadband $\varepsilon$, which together with (\ref{eq:cooldown}) is the stability mechanism.
+The sum form penalises path length, so in sparse WANs it can hold a flow on a congested one-hop
+link rather than move it to a long detour (observed on Internet2, Sec.~\ref{sec:results}); the
+bottleneck form removes this bias.
+
+\paragraph{What the greedy step guarantees}
+Let the capacity filter admit $q$ for flow $f$ on congested link $e$ only if
+$u_{e'}^{\mathrm{post}}\le\theta$ for every $e'\in q$, evaluated on the projected loads that
+already include the moves made earlier in the same interval.
+\begin{proposition}\label{prop:monotone}
+With exact rates, every move accepted through the capacity filter strictly decreases $\Phi$, and
+creates no new link above $\theta$. Hence within one interval Algorithm~\ref{alg:rsdn} performs at
+most $|\mathcal{F}(t)|$ moves and never causes secondary congestion.
+\end{proposition}
+\begin{proof}
+Removing $r_f>0$ from the old path $p\ni e$ lowers $y_{e'}$ for all $e'\in p$, so no $\phi_{e'}$
+grows and $\phi_e$ falls by $\min(r_f,\,y_e-\theta c_e)/c_e>0$ because $e$ is above $\theta$.
+Adding $r_f$ to $q$ leaves every $e'\in q$ at $u_{e'}\le\theta$, so $\phi_{e'}=0$ before and
+after (links on both $p$ and $q$ carry $f$ before and after). Each flow is moved at most once
+per interval (the cooldown), which bounds the number of moves.
+\end{proof}
+The guarantee is with respect to the \emph{measured} rates: if an attacker raises its rate in
+the next interval (S8) or the measurement of an overloaded link is clipped at $\hat u_e=1$, the
+projected and real loads differ, which is why secondary congestion is still measured. The optional
+fallback (Algorithm~\ref{alg:rsdn}, line~\ref{alg:fallback}) gives up the second half of the
+proposition: it accepts a path above $\theta$ whose bottleneck is still below $u_e$, so it never
+raises the maximum utilisation when $e$ is the most loaded link (guaranteed by processing links in
+decreasing utilisation), but may raise $\Phi$ on other links.
+
+\paragraph{Bounded churn}
+The cooldown makes the stability constraint (\ref{eq:cooldown}) hold by construction, which bounds the
+disruption any traffic pattern can cause.
+\begin{proposition}\label{prop:churn}
+With cooldown $T_c>0$ (or cooldowns drawn from $[T_{\min},T_{\max}]$, $T_{\min}>0$, as in S10), during
+any period of length $D$ each flow is moved at most $\lfloor D/T_c\rfloor+1$ times (resp.\
+$\lfloor D/T_{\min}\rfloor+1$), and returns to a path it used before at most $\lfloor D/T_c\rfloor$ times.
+\end{proposition}
+\begin{proof}
+Consecutive moves of the same flow are at least $T_c$ apart (Algorithm~\ref{alg:rsdn}, deadband and
+cooldown line), so at most $\lfloor D/T_c\rfloor+1$ move instants fit in $D$; a return to an earlier path
+is a move other than the first.
+\end{proof}
+With $T_c=30$\,s a flow moves at most 3 times in a 60\,s attack and 21 times in S6 (600\,s), whatever the
+attacker does; ResilientSDN made 2.3 moves per run in total. Threshold-reactive rerouting has no such
+bound: a flow can be moved at every poll ($D/\tau$ times), and it made 388 moves per run, 379 of them
+back to an earlier path (Sec.~\ref{sec:results}).
+
+\paragraph{How long can an attacker stay undetected?}
+Call a poll \emph{hot} if $\hat u_e>\theta$. The trend detector fires on $N$ consecutive hot polls; the
+optional duty-cycle rule (\textsc{DutyCycle} in Algorithm~\ref{alg:rsdn}) also fires on a hot poll when
+at least $\lceil\rho M\rceil$ of the last $M$ polls were hot.
+\begin{proposition}\label{prop:evasion}
+Let $N$ be fixed. If the detector never fires on link $e$, then among any $n$ consecutive polls at most
+$(N-1)\lceil n/N\rceil$ are hot (trend detector alone); with the duty-cycle rule, among any $n$
+consecutive polls after the first $M-1$ at most $(\lceil\rho M\rceil-1)\lceil n/M\rceil$ are hot. The
+bounds are attained when $n$ is a multiple of $N$, resp.\ $M$. Asymptotically, an undetected attacker keeps $e$ above $\theta$ at most a fraction
+$(N-1)/N$, resp.\ $\min\{(N-1)/N,\,(\lceil\rho M\rceil-1)/M\}$, of the time.
+\end{proposition}
+\begin{proof}
+Without detection no run of hot polls reaches length $N$, so each of the $\lceil n/N\rceil$ blocks of at
+most $N$ polls contains a non-hot poll. For the duty rule, take any $M$ consecutive polls (all after
+the first $M-1$) with at least $\lceil\rho M\rceil$ hot ones and let $j$ be the last hot one. The $M$
+polls ending at $j$ contain every hot poll of that window, since they all lie between its start and
+$j$, so the rule fires at $j$. Hence each of the $\lceil n/M\rceil$ blocks of at most $M$ polls holds at
+most $\lceil\rho M\rceil-1$ hot polls. Repeating $N-1$ hot polls and one cool poll, resp.\
+$\lceil\rho M\rceil-1$ hot and $M-\lceil\rho M\rceil+1$ cool, attains the bounds; an exhaustive check over
+all hot/cool sequences of 14 polls against the detector code confirms them
+(\texttt{tests/test\_detector.py}).
+\end{proof}
+With $N=3$ an undetected attacker can keep a link above $\theta$ two thirds of the time; S7 (hot half of
+the time) is one such pattern. With $M=6$, $\rho=0.5$ the bound falls to one third, so S7 is detected,
+while legitimate bursts that are hot in at most 2 of 6 polls (ablation D) are not. The proposition is
+about \emph{detection}; whether a detected link is then relieved depends on the capacity available for
+detours. An attacker can also hold a link just below $\theta$ indefinitely, which by definition is not
+congestion; lowering $\theta$ trades this against more reaction to legitimate load.
+
+\paragraph{Complexity}
+Per interval the detector is $O(|E|)$. For each congested link and each flow on it, the candidate
+set is enumerated once ($|\mathcal{P}_f^H|$ paths of at most $H$ links) and scored, so the
+decision step is $O\big(|D(t)|\cdot\max_e|\mathcal{F}_e|\cdot|\mathcal{P}^H|\cdot H\big)$;
+$|\mathcal{P}^H|$ is small on the fat-tree and bounded by the hop limit $H$ on the WANs.

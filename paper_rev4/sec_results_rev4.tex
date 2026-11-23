@@ -1,0 +1,146 @@
+% Revision 4 -- new results subsections. Numbers in the text are from paper_rev4/generated/*.csv
+% (make_assets.py); every table/figure is generated, none is typed by hand.
+\subsection{Revision-4 results}\label{sec:results}
+
+\input{generated/tab_sim_time}
+
+\paragraph{Overview (simulation, 30 seeds)}
+Table~\ref{tab:sim_time} gives the seconds with a target above $\theta$ for every topology,
+scenario and system; Tables~\ref{tab:paired_time} and~\ref{tab:paired_loss} summarise the paired
+tests. Averaged over all attack scenarios and topologies, a target stayed above $\theta$ for
+121\,s per run under static routing, 94\,s under static ECMP, 56\,s under simple reactive
+rerouting, 45\,s under $k$-path multipath, 35\,s under ResilientSDN, 24\,s under TE-LP (min-max),
+15\,s under ResilientSDN-v2 and 11\,s under TE-LP with the excess objective (TE-$\Phi$). Against
+ResilientSDN, static routing is significantly worse in 33 of 48 cells and never better; simple
+reactive is worse in 12 and better in 7: the pulse attack S7 on all four topologies (its one-poll
+trigger reacts, ResilientSDN's three-poll trigger does not), G\'EANT S13, Internet2 S9 and NSFNET S8. Both LP baselines are significantly better in 28 (min-max)
+and 35 (excess) cells and never worse; they use the same measurements but split flows fractionally
+and react on the first poll.
+
+\input{generated/tab_paired_time}
+\input{generated/tab_paired_loss}
+\input{generated/tab_sim_loss}
+\input{generated/tab_sim_reroutes}
+
+\paragraph{Stability and cost}
+ResilientSDN made 2.3 moves per run on average and 0.05 returns to an earlier path, against 388
+moves and 379 returns for simple reactive rerouting (Table~\ref{tab:sim_reroutes}); TE-LP changed
+4.5--5.4 flow splits per run and needs weighted select groups for every split flow
+(rule changes per run: ResilientSDN 12.5, TE-LP 26--28, simple reactive 1\,967). Fig.~\ref{fig:tradeoff}
+places each system by disruption and congestion time: ResilientSDN and v2 are the only single-path
+systems close to the LP baselines.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figures/tradeoff}
+\caption{Disruption (moves per run, log) against seconds a target is above $\theta$; means over all
+attack scenarios, topologies and seeds (simulation).}\label{fig:tradeoff}
+\end{figure}
+
+\paragraph{WAN topologies, sustained and adversarial attacks (S6--S10)}
+Fig.~\ref{fig:wan_adversarial} extends S6, S7, S8 and S10 to the three WANs. In the 600\,s
+overload S6, ResilientSDN cut the time above $\theta$ from 600\,s (static) to 6\,s on the
+fat-tree, 46\,s on G\'EANT, 65\,s on NSFNET and 204\,s on Internet2, and v2 to 6--26\,s on all
+four; loss of the victim flows fell from about 9--10\,\% to 0.1\,\%. The Internet2 value
+reproduces, in simulation, the hold that the emulation showed for Internet2 S11
+(Sec.~\ref{sec:formulation}): with the sum drift, a 7--13-hop detour scores worse than the
+congested one-hop link, so the deadband keeps the flow. The pulse attack S7 evades the trend
+detector on every topology (ResilientSDN = static, 32\,s); the timed attack S8 is relieved within the
+detection delay (6\,s). Under S10 (one of S7--S9 against randomised $N$ and cooldown) ResilientSDN
+kept the target above $\theta$ for 8--25\,s against 30--33\,s for static routing; simple reactive was
+lower on Internet2 and NSFNET, where S10 drew pulse runs, and v2 was at 8--15\,s.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=\textwidth]{figures/wan_adversarial}
+\caption{Seconds above $\theta$ for S6--S10 on all four topologies (simulation, mean and 95\,\% CI
+over 30 seeds; symmetric-log axis).}\label{fig:wan_adversarial}
+\end{figure*}
+
+\paragraph{Closing the pulse loophole (v3)}
+Table~\ref{tab:v3} adds the duty-cycle trigger (react when a link is above $\theta$ now and in at
+least 3 of the last 6 polls) to ResilientSDN (+Duty) and to v2 (v3), over 13 scenarios, four
+topologies and 30 seeds. It removes the pulse evasion of S7 on every topology (32 to 6\,s above
+$\theta$) and lowers S10 from 16.2 to 13.6\,s (v2: 10.2 to 8.2\,s); averaged over all attacks, v3
+keeps a target above $\theta$ for 11.8\,s, against 15.3\,s for v2 and 34.8\,s for ResilientSDN.
+The cost is small: no move without an attack, neither in S1 nor under the legitimate bursts of SB
+(where simple reactive rerouting made 14.8 moves per run and TE-$\Phi$ 2.4), unchanged secondary
+congestion, and 0.1 more moves per run. In the paired tests (52 cells, Holm-corrected), v3 has
+significantly less time above $\theta$ than ResilientSDN in 16 cells and more in none, and makes
+significantly more moves in 8. The randomised sweep (Sec.~\ref{sec:sweep}) confirms the effect for
+random pulse periods and duty cycles.
+\IfFileExists{generated/tab_v3.tex}{\input{generated/tab_v3}}{}
+
+\IfFileExists{generated/tab_wan_ext.tex}{\input{generated/tab_wan_ext}}{}
+\paragraph{WAN emulation of S6--S10}
+% WAN-EMULATION-PARAGRAPH (filled in from generated/wan_ext_summary.csv when the campaign ends)
+
+\paragraph{Multiple attacked links (S12, S13)}
+With two or three simultaneously attacked links (Fig.~\ref{fig:multilink}), ResilientSDN's
+single-link behaviour carries over on the fat-tree (12\,s for S12, 27\,s for S13) but not on the
+WANs: 98 and 109\,s of 120\,s on G\'EANT, 40 and 83\,s on Internet2 (the long-detour hold again) and
+25 and 109\,s on NSFNET. On NSFNET S13 no system kept the targets below $\theta$ for long (v2 51\,s,
+TE-$\Phi$ 85\,s): three disjoint attacks on a 15-link network leave few detours with enough capacity. ResilientSDN-v2 reduced the time above $\theta$ to 6--16\,s on
+fat-tree, Internet2 and G\'EANT and to 51\,s on NSFNET S13, and victim loss on G\'EANT from 5.3\,\%
+to 2.0\,\% (S12). In S13, v2 is lower than TE-$\Phi$ (22\,s against 40\,s, mean over topologies),
+whose six candidate paths per flow do not include the detours v2 finds within the hop limit.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=\textwidth]{figures/multilink}
+\caption{Link-seconds above $\theta$ summed over all targets: one target (S11), two (S12), three
+(S13), and the adaptive attacker (S14). Simulation, 30 seeds.}\label{fig:multilink}
+\end{figure*}
+
+\paragraph{Adaptive rolling attacker (S14)}
+When the attacker re-aims every 10\,s at the link the victims now share, every reactive defence
+loses part of its advantage: ResilientSDN kept a target above $\theta$ for 48--86\,s of 120\,s
+(static: 120\,s; v2: 47--50\,s), making 8--12 moves per run as it followed the attacker. TE-$\Phi$
+did better on all four topologies (16--33\,s) and min-max TE-LP on three (it fails on G\'EANT,
+94\,s, for the reason given above). $k$-path multipath was the most robust defence on fat-tree and
+NSFNET (0--4\,s), since a fixed bot budget spread over three paths cannot push one link over
+$\theta$, but not on Internet2 and G\'EANT (56--84\,s). Victim loss was 2--4\,\% for ResilientSDN,
+9--10\,\% for static routing and below 1\,\% for TE-$\Phi$.
+
+\paragraph{Presaturation (S9) and the cost of the fallback}
+Simple reactive rerouting and $k$-path multipath both put traffic onto the pre-filled paths and lost
+38--46\,\% and 10--33\,\% of the victim traffic on the WANs; the capacity filter kept ResilientSDN
+at 0\,\%. The fallback of v2 halves the time above $\theta$ in S9 (27\,s to 12\,s), but by design
+it may load a path above $\theta$: secondary congestion rises from 0.04 to 2.4 links per run on
+average and to 6.7 on Internet2.
+Table~\ref{tab:ablation_v2} separates the three v2 extensions: the bottleneck drift alone gives
+most of the gain in S11--S14, the fallback acts only where no path passes the filter (S9, S13)
+and is the one that causes the secondary congestion, and the severity order alone changes
+nothing measurable. An operator who values ``no collateral congestion'' over relief time should
+keep the fallback off; Proposition~\ref{prop:monotone} then holds.
+
+\input{generated/tab_ablation_v2}
+
+\paragraph{TCP goodput and flow-completion time}
+With the legitimate flows as TCP transfers of 5\,MB (ideal FCT 2.0\,s), static routing raised the
+mean FCT to 7.9--17\,s under overload (S6, S11--S13) and simple reactive rerouting to 4.5--16\,s,
+partly because its oscillation moves the transfers between congested paths. ResilientSDN and v2
+kept the mean FCT at 2.0--3.3\,s in every cell (Table~\ref{tab:sim_fct}, Fig.~\ref{fig:tcp_fct});
+TE-$\Phi$ was closest to ideal (2.0--2.4\,s). The adaptive attacker (S14) is the scenario where
+ResilientSDN's FCT rises most (2.6--3.3\,s), because victims are hit again after each move.
+The fluid TCP model assumes that a TCP flow keeps at least 5\,\% of a saturated link. Re-running
+S6 and S11--S14 with this floor at 0 and at 10\,\% (\floorCells{} topology--scenario cells, 30
+seeds) changed the mean FCT of ResilientSDN, v2 and TE-$\Phi$ by at most 6\,\% and left the median
+cell unchanged; static routing and simple reactive rerouting are more sensitive (up to
+\floorMaxRel\,\%). The ranking changed in \floorFlips{} cells, but only between systems within
+0.1\,s of each other (TE-$\Phi$, ResilientSDN, v2) or between static and simple reactive; the two
+groups never swapped, so the TCP conclusions do not depend on the floor.
+
+\input{generated/tab_sim_fct}
+\begin{figure*}[t]\centering
+\includegraphics[width=\textwidth]{figures/tcp_fct}
+\caption{Mean flow-completion time of the victims' 5\,MB TCP transfers (simulation, 30 seeds).}
+\label{fig:tcp_fct}
+\end{figure*}
+
+\paragraph{ECMP against an ECMP-aware attacker}
+With targets planned from static routes, ECMP and $k$-path multipath avoid the fat-tree attacks
+altogether (Table~\ref{tab:sim_time}), which flatters them: the attack never reaches the link they
+use. When the attacker picks host pairs that cross the target under both static and ECMP routing
+(as Crossfire's route mapping would), ECMP is identical to static routing on every topology
+(60 and 120\,s, Table~\ref{tab:sim_ecmp}), while ResilientSDN's results are similar to those with
+the default attacker (the host pairs differ, so the values are not identical).
+
+\input{generated/tab_sim_ecmp}

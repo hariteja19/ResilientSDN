@@ -1,0 +1,29 @@
+\begin{table*}[t]\centering\scriptsize
+\caption{Simulation with an ECMP-aware attacker (attack pairs cross the target under both static and ECMP routing): seconds above $\theta$.}\label{tab:sim_ecmp}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrrrr}
+\toprule
+Topology & Scen. & Static & ECMP & k-MP & Reactive & TE-LP & RSDN & RSDN-v2\\
+\midrule
+Fat-tree & S3 & 60 & 60 & \textbf{0} & 26$\pm$4 & 2 & 6 & 6\\
+ & S5 & 60 & 60 & \textbf{0} & 30 & 2 & 6 & 6\\
+ & S9 & 54 & 54 & \textbf{0} & 27$\pm$2 & 2 & 6 & 6\\
+ & S11 & 120 & 120 & \textbf{0} & 60 & 2 & 6 & 6\\
+\midrule
+NSFNET & S3 & 60 & 60 & \textbf{0} & 15$\pm$5 & 2 & 6 & 6\\
+ & S5 & 60 & 60 & \textbf{0} & 9$\pm$4 & 2 & 6 & 6\\
+ & S9 & 54 & 54 & 60$\pm$1 & 29$\pm$0 & 28$\pm$10 & 40$\pm$8 & \textbf{10$\pm$4}\\
+ & S11 & 120 & 120 & \textbf{0} & 31$\pm$11 & 2 & 17$\pm$13 & 6\\
+\midrule
+Internet2 & S3 & 60 & 60 & 16$\pm$10 & 28$\pm$3 & \textbf{2} & 11$\pm$6 & 6\\
+ & S5 & 60 & 60 & \textbf{0} & 30 & 2 & 6 & 6\\
+ & S9 & 54 & 54 & 57$\pm$1 & 29$\pm$3 & 52$\pm$4 & 52$\pm$3 & \textbf{27$\pm$8}\\
+ & S11 & 120 & 120 & 56$\pm$23 & 60 & \textbf{2} & 40$\pm$20 & 6\\
+\midrule
+G\'EANT & S3 & 60 & 60 & 34$\pm$11 & 26$\pm$4 & 16$\pm$9 & 8$\pm$4 & \textbf{6}\\
+ & S5 & 60 & 60 & 10$\pm$8 & 13$\pm$5 & 25$\pm$11 & \textbf{6} & \textbf{6}\\
+ & S9 & 54 & 54 & 59$\pm$1 & 29$\pm$0 & 26$\pm$10 & 11$\pm$5 & \textbf{7$\pm$2}\\
+ & S11 & 120 & 120 & 72$\pm$22 & 46$\pm$9 & 49$\pm$22 & \textbf{6} & \textbf{6}\\
+\bottomrule
+\end{tabular}
+\end{table*}

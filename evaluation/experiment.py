@@ -63,6 +63,14 @@ VARIANTS = {
         'hysteresis': False, 'scoring': 'shortest', 'trend_trigger': False}}),
     'rsdn_bottleneck_drift': ('resilient_sdn', {'controller': {'dpp_bottleneck': True, 'dpp_weight_V0': 0.1}}),
     'rsdn_no_cooldown': ('resilient_sdn', {'controller': {'cooldown_seconds': 0}}),
+    # Revision 4: v2 (severity order, least-loaded fallback, bottleneck drift) and v3 (v2 + duty-cycle
+    # trigger against pulsing attacks). Evaluated in sim/ first; listed here so they can be emulated.
+    'rsdn_v2': ('resilient_sdn', {'controller': {
+        'order_by_severity': True, 'fallback_least_loaded': True,
+        'dpp_bottleneck': True, 'dpp_weight_V0': 0.1}}),
+    'rsdn_v3': ('resilient_sdn', {'controller': {
+        'order_by_severity': True, 'fallback_least_loaded': True,
+        'dpp_bottleneck': True, 'dpp_weight_V0': 0.1, 'duty_window': 6, 'duty_fraction': 0.5}}),
 }
 
 LEGIT_PORT, BURST_PORT, BACKGROUND_PORT, ATTACK_PORT = 5201, 5251, 5301, 5401

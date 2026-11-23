@@ -12,15 +12,17 @@ then `python3 paper/make_assets.py` and `latexmk -pdf` in `paper/`).
 ## Folder map
 | Folder / file | What it holds |
 |---|---|
-| `controller/` | ResilientSDN: monitor, detector, path engine, scorer, hysteresis, flow manager, main app |
+| `controller/` | ResilientSDN: monitor, detector, path engine, scorer, hysteresis, flow manager, `decision.py` (Algorithm 1, Ryu-free, shared with `sim/`), main app |
 | `baselines/` | Static routing, simple reactive, QoSentry interface |
 | `attack/`, `traffic/` | Attack scenarios S1-S11, legitimate traffic, trace replay |
 | `topology/` | Fat-tree, Internet2, GEANT, NSFNET (`data/` has the source files and `SOURCES.md`) |
-| `evaluation/` | Experiment runner, metrics, ablation, statistics, recompute |
+| `evaluation/` | Experiment runner, metrics, ablation, statistics, recompute, `paired_stats.py` (Wilcoxon + Holm + bootstrap) |
+| `sim/` | Flow-level simulator (revision 4): same decision code as the controller, multi-link / adaptive attacks, TCP goodput and FCT, k-path multipath and min-max TE-LP baselines |
+| `paper_rev4/` | Revision-4 paper material: formulation, Algorithm 1, new sections, `make_assets.py` (tables/figures), `main_rev4.tex` |
 | `analysis/` | Figures, LaTeX tables, `run_report.py` (PDF report with correctness checks) |
 | `tools/` | `live_view.py`: watch a demo or experiment live in the browser (see below) |
 | `config/` | Controller, network and experiment settings |
-| `tests/` | 127 unit tests (`.venv\Scripts\python -m pytest -q`) |
+| `tests/` | Unit tests (`.venv\Scripts\python -m pytest -q`; `test_live_view.py` needs POSIX signals and fails on Windows) |
 | `docker/` | Environment check and connectivity scripts (also used in WSL); optional Docker image (`Dockerfile`, `compose.yaml`, `sdn.ps1`) |
 | `results/` | Output of every run: CSV, per-run logs, `report.pdf` |
 | `docs/` | How-to-run guide, implementation plan, progress log (`PROGRESS.md`), private notes |

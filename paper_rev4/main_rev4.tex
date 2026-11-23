@@ -1,0 +1,35 @@
+% Standalone build of the revision-4 material (to check it compiles and to review it on its own).
+% In the paper, \input the individual files at the places named in their headers instead.
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb,amsthm,graphicx,booktabs,algorithm,algpseudocode,hyperref}
+\newtheorem{proposition}{Proposition}
+\input{generated/validation_macros}
+\input{generated/count_macros}
+\IfFileExists{generated/sweep_macros.tex}{\input{generated/sweep_macros}}{}
+\IfFileExists{generated/floor_macros.tex}{\input{generated/floor_macros}}{}
+\begin{document}
+\title{ResilientSDN -- Revision 4 Material}
+\author{\IEEEauthorblockN{(authors as in the paper)}}
+\maketitle
+
+\section{Model}
+% In the paper the score is Eq. (score) of Sec. III-D; repeated here so the file is self-contained.
+For a candidate path $q$ of flow $f$:
+\begin{equation}
+ \mathrm{Score}(q)=w_1C(q)+w_2L(q)-w_3K_f(q).\label{eq:score}
+\end{equation}
+\input{tab_notation}
+\input{sec_formulation}
+\input{alg_resilientsdn}
+
+\section{Evaluation additions}
+\input{sec_method_rev4}
+\input{sec_results_rev4}
+\input{sec_sweep_rev4}
+
+\section{Related work additions}
+\input{sec_related_limits}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references_rev4}
+\end{document}

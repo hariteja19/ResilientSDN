@@ -23,6 +23,12 @@ SYSTEM_COLORS = {
     'rsdn_norm_drift': '#5b8fd9',        # light blue (ResilientSDN family)
     'rsdn_gate_all': '#2f6db5',          # mid blue (ResilientSDN family, revision 2)
     'rsdn_sequential_only': '#c9a227',   # ochre (revision 2)
+    'resilient_sdn_v2': '#14417a',       # dark blue (ResilientSDN family, revision 4)
+    'te_lp': '#7a3fb5',                  # purple (revision 4: min-max-utilisation LP)
+    'mp_ksp': '#e87ba4',                 # magenta (revision 4: oblivious k-path multipath)
+    'te_lp_excess': '#c9a227',           # ochre (revision 4: excess-minimising LP, Eq. 3 relaxed)
+    'resilient_sdn_v3': '#0a2a52',       # navy (ResilientSDN family, revision 4: v2 + duty-cycle trigger)
+    'rsdn_duty': '#5b8fd9',              # light blue (ResilientSDN family, revision 4)
 }
 SYSTEM_LABELS = {
     'resilient_sdn': 'ResilientSDN', 'simple_reactive': 'Simple reactive',
@@ -32,6 +38,9 @@ SYSTEM_LABELS = {
     'static_ecmp': 'Static ECMP', 'rsdn_no_capacity_filter': 'No capacity filter',
     'rsdn_norm_drift': 'Normalised drift',
     'rsdn_gate_all': 'Gate all candidates', 'rsdn_sequential_only': 'One-at-a-time only',
+    'resilient_sdn_v2': 'ResilientSDN-v2', 'te_lp': 'TE-LP (min-max)', 'mp_ksp': 'k-path multipath',
+    'te_lp_excess': 'TE-LP (excess)',
+    'resilient_sdn_v3': 'ResilientSDN-v3', 'rsdn_duty': 'ResilientSDN + duty trigger',
 }
 SYSTEM_ORDER = list(SYSTEM_COLORS)
 TEXT, TEXT_2, GRID = '#0b0b0b', '#52514e', '#e6e5e1'

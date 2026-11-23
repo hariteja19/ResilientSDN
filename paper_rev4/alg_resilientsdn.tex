@@ -1,0 +1,43 @@
+% Revision 4 -- Algorithm 1, aligned line by line with controller/decision.py
+% (ResilientDecision.on_interval / _try_reroute). Needs \usepackage{algorithm,algpseudocode}.
+\begin{algorithm}[t]
+\caption{ResilientSDN, one polling interval $t$}\label{alg:rsdn}
+\begin{algorithmic}[1]
+\Require loads $\hat y_e$, $\hat u_e$; rates $r_f$; paths $p_f$
+\Statex \hspace{\algorithmicindent}parameters $\theta,N,H,w_{1..3},V_0,\varepsilon,T_c$
+\State $D\gets\{e:\hat u_e>\theta$ in the last $N_e$ polls$\}$ \Comment{trend detector}
+\Statex \hspace{\algorithmicindent}($N_e=N-1$ if $e$ was attacked in the last $W$\,s, else $N$;
+\Statex \hspace{\algorithmicindent}\textsc{DutyCycle}: also if $\hat u_e>\theta$ now and in $\ge\rho M$ of the last $M$ polls)
+\State \textbf{if} $D=\emptyset$ \textbf{return}
+\State $\tilde y\gets\hat y$ \Comment{projected loads}
+\State \textbf{if} \textsc{OrderBySeverity}: sort $D$ by $\tilde y_e/c_e$, descending
+\ForAll{$e\in D$}
+  \State $x_e\gets\tilde y_e-\theta c_e$ \Comment{excess to shed}
+  \ForAll{$f$ with $e\in p_f$, by $r_f$ descending}
+    \State \textbf{if} $x_e\le 0$ \textbf{break}
+    \State $\tilde y^{-f}\gets\tilde y$ with $r_f$ removed from $p_f$
+    \State $A\gets\{q\in\mathcal{P}_f^H: e\notin q,\ q\neq p_f\}$
+    \State $P\gets\{q\in A:\max_{e'\in q}(\tilde y^{-f}_{e'}+r_f)/c_{e'}\le\theta\}$
+    \Statex \hfill\Comment{capacity filter}
+    \If{$P=\emptyset$ \textbf{and} \textsc{Fallback}} \label{alg:fallback}
+      \State $q^\circ\gets\arg\min_{q\in A}\max_{e'\in q}(\tilde y^{-f}_{e'}+r_f)/c_{e'}$
+      \State \textbf{if} that value $<\tilde y_e/c_e$: $P\gets\{q^\circ\}$, relief $\gets$ true
+    \EndIf
+    \State \textbf{if} $P=\emptyset$: log \textit{no\_candidate}; \textbf{continue}
+    \State $q^\star\gets\arg\max_{q\in P}\mathrm{Score}(q)$ \Comment{Eq.~(\ref{eq:score})}
+    \State $\delta\gets\mathrm{DPP}(q^\star;\tilde y^{-f})-\mathrm{DPP}(p_f;\tilde y)$
+      \Comment{Eq.~(\ref{eq:dpp})}
+    \If{($\delta\le\varepsilon$ \textbf{and not} relief) \textbf{or} $t-t_f^{\mathrm{last}}<T_c$}
+      \State log \textit{held}; \textbf{continue} \Comment{deadband and cooldown}
+    \EndIf
+    \State install $q^\star$ make-before-break; $t_f^{\mathrm{last}}\gets t$
+    \State $\tilde y\gets\tilde y^{-f}$ with $r_f$ added on $q^\star$;\quad $x_e\gets x_e-r_f$
+  \EndFor
+  \State \textbf{if} $x_e>0$: log \textit{unresolved}$(e,x_e)$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+% Published configuration: OrderBySeverity = Fallback = false, sum drift, V0 = 1.
+% ResilientSDN-v2 (revision 4, simulation): OrderBySeverity = Fallback = true,
+% bottleneck drift with V0 = 0.1. ResilientSDN-v3: v2 + DutyCycle (M = 6, rho = 0.5). C(q) = 1 - max post-move utilisation, L(q) = best candidate
+% latency / latency(q), K_f(q) = |q \ p_f| / |q|  (controller/scorer.py).

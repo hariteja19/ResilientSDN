@@ -7,6 +7,8 @@ only loads the direction it travels in. Each entry holds:
 """
 import networkx as nx
 
+_CANDIDATE_CACHE = {}   # {(graph signature, src, dst, K, H): candidate paths}; only with max_candidates
+
 
 def path_links(path) -> list:
     """Convert node list to edge list: [A,B,C] → [(A,B),(B,C)]"""
@@ -18,11 +20,30 @@ class PathEngine:
         self.G = graph
         self.safe_threshold = config.safe_threshold  # 0.80
         self.max_hops = getattr(config, 'max_path_hops', 6)
+        # Revision 4 (off by default): candidate cap for large or dense graphs, where enumerating every
+        # simple path within max_hops explodes. With max_candidates = K the candidates are the K
+        # lowest-latency paths within max_hops (Yen's algorithm), computed once per switch pair.
+        self.max_candidates = getattr(config, 'max_candidates', None)
 
     def all_paths(self, src, dst) -> list:
-        return list(nx.all_simple_paths(
-            self.G, source=src, target=dst, cutoff=self.max_hops
-        ))
+        if not self.max_candidates:
+            return list(nx.all_simple_paths(
+                self.G, source=src, target=dst, cutoff=self.max_hops
+            ))
+        sig = self.G.graph.get('_pe_sig')
+        if sig is None:   # structural signature, so engines on the same graph share the cache
+            sig = self.G.graph['_pe_sig'] = hash(frozenset(
+                (u, v, d.get('latency')) for u, v, d in self.G.edges(data=True)))
+        key = (sig, src, dst, self.max_candidates, self.max_hops)
+        if key not in _CANDIDATE_CACHE:
+            out = []
+            for i, p in enumerate(nx.shortest_simple_paths(self.G, src, dst, weight='latency')):
+                if len(out) == self.max_candidates or i >= 5 * self.max_candidates:
+                    break
+                if len(p) - 1 <= self.max_hops:
+                    out.append(tuple(p))
+            _CANDIDATE_CACHE[key] = out
+        return [list(p) for p in _CANDIDATE_CACHE[key]]
 
     def find_candidates(self, src, dst, congested_link,
                         traffic_to_move, link_stats) -> list:

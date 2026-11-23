@@ -1,0 +1,11 @@
+,reroutes,reroutes,time_above_s,time_above_s
+,mean,max,mean,max
+system,,,,
+resilient_sdn,0.0,0,10.0,10
+resilient_sdn_v2,0.0,0,10.0,10
+resilient_sdn_v3,0.0,0,10.0,10
+rsdn_duty,0.0,0,10.0,10
+simple_reactive,14.8,31,5.516666666666667,6
+static,0.0,0,10.0,10
+te_lp,1.5166666666666666,5,2.933333333333333,10
+te_lp_excess,2.4166666666666665,12,2.933333333333333,10
